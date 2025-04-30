@@ -637,6 +637,9 @@ UBOOTINCLUDE    := \
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 CHECKFLAGS     += $(NOSTDINC_FLAGS)
 
+# folder on the remote server where the version and the image files are stored
+PLATFORM_CPPFLAGS += -D'SDCARD_IMAGE_FOLDER=$(REMOTE_IMAGE_DIR)'
+
 # FIX ME
 cpp_flags := $(KBUILD_CPPFLAGS) $(PLATFORM_CPPFLAGS) $(UBOOTINCLUDE) \
 							$(NOSTDINC_FLAGS)
