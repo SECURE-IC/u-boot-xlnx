@@ -151,6 +151,7 @@
 	"fdt_addr=4000000\0" \
 	"fdt_high=0x10000000\0" \
 	"loadbootenv_addr=0x100000\0" \
+	"loadbootscript_addr=0x100000\0" \
 	"sdbootdev=0\0"\
 	"kernel_offset=0x280000\0" \
 	"fdt_offset=0x200000\0" \
@@ -182,7 +183,18 @@
 			"echo Running uenvcmd ...; " \
 			"run uenvcmd; " \
 		"fi\0" \
+	"bootscript=boot.scr\0" \
+	"sdcard_image_folder=" __stringify(SDCARD_IMAGE_FOLDER) "\0" \
+	"sd_boot_script_existence_test=test -e mmc $sdbootdev:$partid /boot.scr\0" \
+	"loadbootscript=fatload mmc $sdbootdev:$partid ${loadbootscript_addr} ${bootscript}\0" \
+	"custom_boot_script=echo Running ${bootscript} ...; source ${loadbootscript_addr}\0" \
 	"sdboot=mmc dev $sdbootdev && mmcinfo && run uenvboot || run sdroot$sdbootdev; " \
+		"if run sd_boot_script_existence_test; then " \
+			"if run loadbootscript; then " \
+				"echo Loaded boot script from mmc$sdbootdev:$partid; " \
+				"run custom_boot_script;" \
+			"fi;" \
+		"fi;" \
 		"load mmc $sdbootdev:$partid $fdt_addr system.dtb && " \
 		"load mmc $sdbootdev:$partid $kernel_addr Image && " \
 		"booti $kernel_addr - $fdt_addr\0" \

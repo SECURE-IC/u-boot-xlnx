@@ -221,6 +221,7 @@
 	"boot_image=BOOT.bin\0"	\
 	"loadbit_addr=0x100000\0"	\
 	"loadbootenv_addr=0x2000000\0" \
+	"loadbootscript_addr=0x2000000\0" \
 	"kernel_size=0x500000\0"	\
 	"devicetree_size=0x20000\0"	\
 	"ramdisk_size=0x5E0000\0"	\
@@ -263,8 +264,21 @@
 			"echo Running uenvcmd ...; " \
 			"run uenvcmd; " \
 		"fi\0" \
+	"bootscript=boot.scr\0" \
+	"sdcard_image_folder=" __stringify(SDCARD_IMAGE_FOLDER) "\0" \
+	"sdbootdev=0\0"\
+	"partid=1\0"\
+	"sd_boot_script_existence_test=test -e mmc $sdbootdev:$partid /boot.scr\0" \
+	"loadbootscript=fatload mmc $sdbootdev:$partid ${loadbootscript_addr} ${bootscript}\0" \
+	"custom_boot_script=echo Running ${bootscript} ...; source ${loadbootscript_addr}\0" \
 	"sdboot=if mmcinfo; then " \
 			"run uenvboot; " \
+			"if run sd_boot_script_existence_test; then " \
+				"if run loadbootscript; then " \
+					"echo Loaded boot script from mmc $sdbootdev:$partid; " \
+					"run custom_boot_script;" \
+				"fi;" \
+			"fi;" \
 			"echo Copying Linux from SD to RAM... && " \
 			"load mmc 0 ${kernel_load_address} ${kernel_image} && " \
 			"load mmc 0 ${devicetree_load_address} ${devicetree_image} && " \
